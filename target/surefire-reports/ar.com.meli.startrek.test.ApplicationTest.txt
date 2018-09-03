@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: ar.com.meli.startrek.test.ApplicationTest
+-------------------------------------------------------------------------------
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.06 s - in ar.com.meli.startrek.test.ApplicationTest

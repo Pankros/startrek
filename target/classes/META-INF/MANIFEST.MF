@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: startrek
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: Pancho
+Implementation-Vendor-Id: ar.com.meli
+Build-Jdk: 1.8.0_60
+Implementation-URL: https://projects.spring.io/spring-boot/#/spring-bo
+ ot-starter-parent/startrek
+Created-By: Maven Integration for Eclipse
+

@@ -1,0 +1,4 @@
+---
+applications:
+- name: startrek
+  instances: 1
