@@ -47,18 +47,18 @@ public class ApplicationTest {
     @Test
     public void greetingShouldReturnDefaultMessage() throws Exception {
         assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/",
-                String.class)).contains("Greetings from this planetaty system!");
+                String.class)).startsWith("Greetings from this planetaty system!");
     }
 
     @Test
     public void shouldRainning() throws Exception {
-        assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/planetarysystem/weather/?day=566",
+        assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/planetarysystem/weather/day/566",
                 WeatherDay.class)).isEqualTo(new WeatherDay(566l, WeatherEnum.RAIN));
     }
     
     @Test
     public void shouldBeDroudht() throws Exception {
-        assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/planetarysystem/weather/?day=0",
+        assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/planetarysystem/weather/day/0",
                 WeatherDay.class)).isEqualTo(new WeatherDay(0l, WeatherEnum.DROUDHT));
     }
     

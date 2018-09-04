@@ -44,6 +44,7 @@ public class WeatherPredictionServiceImpl implements WeatherPredictionService {
         return weather;
     }
 
+    
     @Override
     public List<WeatherSeason> predictWeatherSeason(Map<Long, Position> trajectory1, Map<Long, Position> trajectory2, Map<Long, Position> trajectory3, Long days) {
         logger.info(String.format("Begin calculating weather for %d days", days));
@@ -53,7 +54,7 @@ public class WeatherPredictionServiceImpl implements WeatherPredictionService {
         WeatherSeason weatherSeason = null;
         Double maxPerimeter = null;
         List<WeatherSeason> seasons = new ArrayList<>();
-        for (Long i = 0l; i <= days; i++) {
+        for (Long i = 0l; i < days; i++) {
             position1 = trajectory1.get(i);
             position2 = trajectory2.get(i);
             position3 = trajectory3.get(i);
@@ -79,7 +80,8 @@ public class WeatherPredictionServiceImpl implements WeatherPredictionService {
                 weatherSeason.setMaxPerimeterDay(i);
             }
         }
-        weatherSeason.setDayEnd(days);
+        weatherSeason.setDayEnd(days- 1);
+        seasons.add(weatherSeason);
         return seasons;
     }
     

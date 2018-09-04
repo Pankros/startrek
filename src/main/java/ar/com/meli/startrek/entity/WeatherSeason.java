@@ -20,6 +20,19 @@ public class WeatherSeason {
     
     private Long maxPerimeterDay;
 
+    
+    
+    public WeatherSeason(Long id, WeatherEnum weather, Long dayBegin, Long dayEnd, Long maxPerimeterDay) {
+        this.id = id;
+        this.weather = weather;
+        this.dayBegin = dayBegin;
+        this.dayEnd = dayEnd;
+        this.maxPerimeterDay = maxPerimeterDay;
+    }
+
+    public WeatherSeason() {
+    }
+
     public Long getId() {
         return id;
     }

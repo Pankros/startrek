@@ -9,6 +9,16 @@ public class WeatherSeasonDTO {
     private Long dayBegin;
     
     private Long dayEnd;
+    
+    private Long maxPerimeterDay;
+
+    public Long getMaxPerimeterDay() {
+        return maxPerimeterDay;
+    }
+
+    public void setMaxPerimeterDay(Long maxPerimeterDay) {
+        this.maxPerimeterDay = maxPerimeterDay;
+    }
 
     public WeatherEnum getWeather() {
         return weather;

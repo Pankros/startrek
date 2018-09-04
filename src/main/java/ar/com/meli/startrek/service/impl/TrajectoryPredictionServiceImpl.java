@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import ar.com.meli.startrek.entity.DirectionEnum;
 import ar.com.meli.startrek.entity.Planet;
 import ar.com.meli.startrek.entity.Position;
 import ar.com.meli.startrek.service.TrajectoryPredictionService;
@@ -43,7 +44,7 @@ public class TrajectoryPredictionServiceImpl implements TrajectoryPredictionServ
             logger.info(String.format("Direction %s", planet.getDirection()));
             
             positions = Stream.iterate(0l, i -> i + 1)
-                        .limit(days + 1)
+                        .limit(days)
                         .map(i -> planetPosition(planet, i))
                         .collect(Collectors.toMap(p -> p.getDay(), p -> p));
             logger.info(String.format("Done trajectory for %s", planet.getName()));
@@ -55,15 +56,16 @@ public class TrajectoryPredictionServiceImpl implements TrajectoryPredictionServ
     }
     
     private Position planetPosition(Planet planet, Long day) {
-        Long degree = planet.getDirection().getValue() * (planet.getDegreePerDay() * day);
-        if (degree > 360 || degree < -360)
-            degree = degree % 360;
-        if (degree < 0)
-            degree = 360 + degree;
+        Long degree = this.getAbsoluteDegree(planet.getDirection(), planet.getDegreePerDay(), day);
         double x = this.getPositionX(degree.intValue(), planet.getDistanceFromSun());
         double y = this.getPositionY(degree.intValue(), planet.getDistanceFromSun());
         logger.debug(String.format("[Day %d] [degrees %d] [x %f, y%f]", day, degree, x, y));
         return new Position(degree.intValue(), planet.getDistanceFromSun(), x, y, planet, day);
+    }
+    
+    private Long getAbsoluteDegree(DirectionEnum direction, int speed, Long day) {
+        Long degree = (direction.getValue() * (speed * day)) % 360;
+        return  degree < 0 ? 360 + degree : degree;
     }
 
     private double getPositionX(int degree, int radius) {

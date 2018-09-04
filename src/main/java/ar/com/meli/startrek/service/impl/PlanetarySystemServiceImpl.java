@@ -1,7 +1,9 @@
 package ar.com.meli.startrek.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -38,12 +40,16 @@ public class PlanetarySystemServiceImpl implements PlanetarySystemService {
     @Autowired
     private WeatherSeasonRepository weatherSeasonRepository;
     
-    @Value("${prediction.years}")
-    private Long years;
+    @Value("${prediction.period}")
+    private Long period;
     
+    @Value("${meaning.of.life}")
+    private String meaningOfLife;
+    
+
     @Value("${prediction.at.start}")
     private boolean predictAtStart;
-
+    
     private Planet ferengi;
     private Planet vulcano;
     private Planet betasoide;
@@ -51,8 +57,12 @@ public class PlanetarySystemServiceImpl implements PlanetarySystemService {
     @Override
     public WeatherDay getWeatherByDay(Long day) {
         WeatherDay weatherDay;
+        WeatherSeason weatherSeason;
         try {
-            weatherDay = calculateWeatherByDay(day);
+            //buscamos el dia dentro del primer periodo
+            //calculandole el modulo
+            weatherSeason = weatherSeasonRepository.findByDayBeginLessThanEqualAndDayEndGreaterThanEqual(day % 360, day % 360);
+            weatherDay = new WeatherDay(day, weatherSeason.getWeather());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw e;
@@ -60,53 +70,53 @@ public class PlanetarySystemServiceImpl implements PlanetarySystemService {
         return weatherDay;
     }
 
-    private WeatherDay calculateWeatherByDay(Long day) {
-        Position ferengiPosition;
-        Position vulcanoPosition;
-        Position batasoiddePosition;
-        WeatherEnum weather;
-        try {
-            ferengiPosition = planetarySystemUtil.calculatePosition(ferengi, day);
-            vulcanoPosition = planetarySystemUtil.calculatePosition(vulcano, day);
-            batasoiddePosition = planetarySystemUtil.calculatePosition(betasoide, day);
-            weather = weatherPredictionService.getWeatherByDay(ferengiPosition, 
-                                                                        vulcanoPosition,
-                                                                        batasoiddePosition, 
-                                                                        day);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            throw e;
-        }
-        return new WeatherDay(Long.valueOf(day), weather);
-    }
-    
     @Override
-    public List<WeatherSeason> getAllSeasonByWeather(WeatherEnum weather) {
+    public List<WeatherSeason> getAllSeasonByWeather(WeatherEnum weather, Long periods) {
         List<WeatherSeason> weatherSeasons;
+        List<WeatherSeason> weatherSeasonsResponse = new ArrayList<>();
         try {
-            weatherSeasons = weatherSeasonRepository.findAllByWeather(weather);
+            //Nos traemos la informacion del clima para el periodo 1 
+            if (weather.equals(WeatherEnum.ALL)) {
+                weatherSeasons = weatherSeasonRepository.findAll();
+            } else {
+                weatherSeasons = weatherSeasonRepository.findAllByWeather(weather);
+            }
+            weatherSeasonsResponse.addAll(weatherSeasons);
+            //Generamos los periodos que sean necesarios
+            for (long i = 1; i < (periods != null ? periods : 0); i++) {
+                final long lambda = i;
+                weatherSeasonsResponse.addAll(
+                    weatherSeasons.stream()
+                        .map(ws -> new WeatherSeason(ws.getId(), 
+                                ws.getWeather() , 
+                                (ws.getDayBegin() + (lambda*360)), 
+                                (ws.getDayEnd() + (lambda*360)), 
+                                (ws.getMaxPerimeterDay() + (lambda*360))))
+                        .collect(Collectors.toList()));
+            }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw e;
         }
-        return weatherSeasons;
+        return weatherSeasonsResponse;
     }
 
     @Override
-    public int generatePredictionWeatherForYears(Long years) {
-        logger.info(String.format("Preparing prediction for %d years", years));
-        Long days;
+    public String generatePredictionWeatherForPeriods(Long periods) {
+        logger.info(String.format("Preparing prediction for %d periods", periods));
         List<WeatherSeason> seasons;
         try {
-            days = years * 365;
-            seasons = this.generatePredictionWeatherForDays(days);
+            //Dado que cada 360 dias el ciclo se repite 
+            //Solo es necesario calcular un ciclo completo
+            //Lo demas se lo dejamos a getAllSeasonByWeather y getWeatherByDay
+            seasons = this.generatePredictionWeatherForDays(360l);
             weatherSeasonRepository.deleteAll();
             weatherSeasonRepository.saveAll(seasons);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw e;
         }
-        return seasons.size();
+        return meaningOfLife;
     }
 
     private List<WeatherSeason> generatePredictionWeatherForDays(Long days) {
@@ -121,10 +131,10 @@ public class PlanetarySystemServiceImpl implements PlanetarySystemService {
             trajectoryVulcano = planetarySystemUtil.calculateTrajectory(vulcano, days);
             trajectoryBetasoide = planetarySystemUtil.calculateTrajectory(betasoide, days);
 
-            seasons = weatherPredictionService.predictWeatherSeason(  trajectoryFerengi, 
-                                                                trajectoryVulcano, 
-                                                                trajectoryBetasoide, 
-                                                                days);
+            seasons = weatherPredictionService.predictWeatherSeason(    trajectoryFerengi, 
+                                                                        trajectoryVulcano, 
+                                                                        trajectoryBetasoide, 
+                                                                        days);
             
             logger.info(String.format("End calculate trajectory"));
         } catch (Exception e) {
@@ -141,6 +151,6 @@ public class PlanetarySystemServiceImpl implements PlanetarySystemService {
         vulcano = new Planet("Vulcano", 1000, 5, DirectionEnum.COUNTER_CLOCKWISE);
         betasoide = new Planet("Betasoide", 2000, 3, DirectionEnum.CLOCKWISE);
         logger.info(String.format("Planets Done"));
-        if (predictAtStart) generatePredictionWeatherForYears(years);
+        if (predictAtStart) generatePredictionWeatherForPeriods(period);
     }
 }

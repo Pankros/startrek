@@ -76,5 +76,10 @@ public class Position {
     public void setDay(Long day) {
         this.day = day;
     }
+    
+    @Override
+    public String toString() {
+        return String.format("%s: .Day: %d [%d(%d)°] [x:%f,y%f]", planet.getName(), day, radius, degree, x, y);
+    }
 
 }

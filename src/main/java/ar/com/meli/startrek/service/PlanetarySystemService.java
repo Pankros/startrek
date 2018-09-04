@@ -10,8 +10,8 @@ public interface PlanetarySystemService {
 
     WeatherDay getWeatherByDay(Long day);
 
-    List<WeatherSeason> getAllSeasonByWeather(WeatherEnum weather);
-
-    int generatePredictionWeatherForYears(Long years);
+    List<WeatherSeason> getAllSeasonByWeather(WeatherEnum weather, Long periods);
+    
+    String generatePredictionWeatherForPeriods(Long periods);
 
 }

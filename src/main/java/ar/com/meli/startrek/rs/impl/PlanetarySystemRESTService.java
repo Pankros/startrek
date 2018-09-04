@@ -12,12 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ar.com.meli.startrek.dto.WeatherDayDTO;
 import ar.com.meli.startrek.dto.WeatherSeasonDTO;
-import ar.com.meli.startrek.dto.WeatherSeasonRainDTO;
 import ar.com.meli.startrek.dto.WeatherSeasonResponseDTO;
 import ar.com.meli.startrek.entity.WeatherDay;
 import ar.com.meli.startrek.entity.WeatherEnum;
@@ -37,8 +35,8 @@ public class PlanetarySystemRESTService {
     @Autowired
     private ModelMapper modelMapper;
     
-    @RequestMapping(value = "/weather", method = RequestMethod.GET)
-    public ResponseEntity<?> getWeatherByDay(@RequestParam(name="day") Long day) {
+    @RequestMapping(value = "/weather/day/{day}", method = RequestMethod.GET)
+    public ResponseEntity<?> getWeatherDay(@PathVariable(name="day") Long day) {
         logger.debug(String.format("getting weather for day %d", day));
         WeatherDayDTO response;
         WeatherDay weatherDay;
@@ -58,28 +56,21 @@ public class PlanetarySystemRESTService {
         return new ResponseEntity<WeatherDayDTO>(response, HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/weather/type/{weather}", method = RequestMethod.GET)
-    public ResponseEntity<?> getDaysByWeather(@PathVariable(name="weather") String weather) {
-        logger.debug(String.format("getting periodos of %s ", weather));
-        WeatherEnum weatherEnum;
+    @RequestMapping(value = "/weatherseason/weather/{weather}/periods/{periods}", method = RequestMethod.GET)
+    public ResponseEntity<?> getSeasonsByWeather(@PathVariable(name="weather") String weather, @PathVariable(name="periods") Long periods) {
+        logger.debug(String.format("getting weather %s of %d periods ", weather, periods));
         List<WeatherSeason> weatherSeasons;
         WeatherSeasonResponseDTO response = new WeatherSeasonResponseDTO();
         try {
-            ValidationService.getDaysByWeather(weather);
-            weatherEnum = Enum.valueOf(WeatherEnum.class, weather);
-            weatherSeasons = planetarySystemServiceImpl.getAllSeasonByWeather(weatherEnum);
+            ValidationService.getSeasonsByWeather(weather, periods);
+            WeatherEnum weatherEnum = Enum.valueOf(WeatherEnum.class, weather);
+            weatherSeasons = planetarySystemServiceImpl.getAllSeasonByWeather(weatherEnum, periods);
             if (weatherSeasons == null || weatherSeasons.isEmpty()) {
                 return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
             }
-            if (weatherEnum.equals(WeatherEnum.RAIN)) {
-                response.setSeasons(weatherSeasons.stream()
-                                        .map(w -> modelMapper.map(w, WeatherSeasonRainDTO.class))
-                                        .collect(Collectors.toList()));
-            } else {
-                response.setSeasons(weatherSeasons.stream()
-                        .map(w -> modelMapper.map(w, WeatherSeasonDTO.class))
-                        .collect(Collectors.toList()));
-            }
+            response.setSeasons(weatherSeasons.stream()
+                                    .map(w -> modelMapper.map(w, WeatherSeasonDTO.class))
+                                    .collect(Collectors.toList()));
             response.setTotal(weatherSeasons.size());
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -89,20 +80,20 @@ public class PlanetarySystemRESTService {
         }
         return new ResponseEntity<WeatherSeasonResponseDTO>(response, HttpStatus.OK);
     }
-
-    @RequestMapping(value = "/weather/prediction/years/{years}", method = RequestMethod.POST)
-    public ResponseEntity<?> generatePredictionWeatherForYears(@PathVariable(name="years") Long years) {
-        logger.debug(String.format("generation weather prediction for %d years", years));
-        int seasons = 0;
+    
+    @RequestMapping(value = "/weather/prediction/periods/{periods}", method = RequestMethod.POST)
+    public ResponseEntity<?> generatePredictionWeatherForPeriods(@PathVariable(name="periods") Long periods) {
+        logger.debug(String.format("generation weather prediction for %d years", periods));
+        String response;
         try {
-            ValidationService.generatePredictionWeatherForYears(years);
-            seasons = planetarySystemServiceImpl.generatePredictionWeatherForYears(years);
+            ValidationService.generatePredictionWeatherForPeriods(periods);
+            response = planetarySystemServiceImpl.generatePredictionWeatherForPeriods(periods);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return new ResponseEntity<WeatherDay>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(seasons, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

@@ -11,17 +11,19 @@ public class ValidationService {
         Assert.isTrue(day >= 0, ErrorsEnum.NEGATIVE_DAYS.getValue());
     }
 
-    public static void generatePredictionWeatherForYears(Long years) throws IllegalArgumentException {
-        Assert.notNull(years, ErrorsEnum.NO_DAY.getValue());
-        Assert.isTrue(years >= 0, ErrorsEnum.NEGATIVE_DAYS.getValue());
+    public static void generatePredictionWeatherForPeriods(Long periods) throws IllegalArgumentException {
+        Assert.notNull(periods, ErrorsEnum.NO_DAY.getValue());
+        Assert.isTrue(periods >= 0, ErrorsEnum.NEGATIVE_DAYS.getValue());
     }
     
-    public static void getDaysByWeather(String weather) throws IllegalArgumentException {
+    public static void getSeasonsByWeather(String weather, Long periods) throws IllegalArgumentException {
         Assert.notNull(weather, ErrorsEnum.NO_WEATHER.getValue());
         try {
             Enum.valueOf(WeatherEnum.class, weather);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(ErrorsEnum.NO_WEATHER.getValue());
         }
+        Assert.notNull(periods, ErrorsEnum.NEGATIVE_PERIOD.getValue());
+        Assert.isTrue(periods >= 0, ErrorsEnum.NEGATIVE_PERIOD.getValue());
     }
 }

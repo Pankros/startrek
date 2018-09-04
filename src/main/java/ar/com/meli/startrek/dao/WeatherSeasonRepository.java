@@ -10,7 +10,11 @@ import ar.com.meli.startrek.entity.WeatherSeason;
 
 @Repository
 public interface WeatherSeasonRepository extends CrudRepository<WeatherSeason, Long> {
-    
+
     List<WeatherSeason> findAllByWeather(WeatherEnum weather);
+    
+    WeatherSeason findByDayBeginLessThanEqualAndDayEndGreaterThanEqual(Long dayEnd, Long dayBegin);
+    
+    List<WeatherSeason> findAll();
 
 }

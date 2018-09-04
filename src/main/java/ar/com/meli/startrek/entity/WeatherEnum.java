@@ -5,7 +5,8 @@ public enum WeatherEnum {
     DROUDHT("DROUDHT"), 
     RAIN("RAIN"), 
     NORMAL("NORMAL"), 
-    OPTIMUM("OPTIMUM");
+    OPTIMUM("OPTIMUM"),
+    ALL("ALL");
     
     private final String value;
     
